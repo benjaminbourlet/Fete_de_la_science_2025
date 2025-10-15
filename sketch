@@ -1,0 +1,123 @@
+#include <Stepper.h>
+#include <Adafruit_NeoPixel.h>
+
+// ------------------ CONFIG MOTEUR ------------------
+const int stepsPerRevolution = 2048; // pour 360°
+#define IN1 19
+#define IN2 18
+#define IN3 5
+#define IN4 17
+
+Stepper myStepper(stepsPerRevolution, IN1, IN3, IN2, IN4);
+
+// ------------------ CONFIG LED ------------------
+#define PIN 2
+#define NUMPIXELS 12
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
+// ------------------ SIMULATION ------------------
+struct TramData {
+  const char* heure;
+  const char* densite;
+};
+
+TramData tramDensite[] = {
+  {"06:00", "faible"},
+  {"07:00", "moyenne"},
+  {"08:00", "elevee"},
+  {"09:00", "elevee"},
+  {"10:00", "moyenne"},
+  {"12:00", "faible"}
+};
+int totalHeures = sizeof(tramDensite) / sizeof(tramDensite[0]);
+
+// ------------------ VARIABLES ------------------
+String densiteActuelle = "";
+int indexHeure = 0;
+
+// Couleur actuelle et cible
+int currentR = 0, currentG = 0, currentB = 0;
+int targetR = 0, targetG = 0, targetB = 0;
+
+// ------------------ SETUP ------------------
+void setup() {
+  Serial.begin(115200);
+  myStepper.setSpeed(15);
+  pixels.begin();
+  pixels.show();
+  Serial.println("🚋 Simulation Tram Bordeaux - Transition BLEUE");
+}
+
+// ------------------ LOOP ------------------
+void loop() {
+  String densite = tramDensite[indexHeure].densite;
+  String heure = tramDensite[indexHeure].heure;
+
+  Serial.print("🕒 ");
+  Serial.print(heure);
+  Serial.print(" | Densité : ");
+  Serial.println(densite);
+
+  if (densite != densiteActuelle) {
+    densiteActuelle = densite;
+
+    if (densite == "elevee") {
+      tournerMoteur(180);
+      setTargetColor(255, 255, 255); // Blanc (forte densité)
+    } 
+    else if (densite == "moyenne") {
+      tournerMoteur(60);
+      setTargetColor(100, 100, 255); // Bleu clair (moyenne)
+    } 
+    else if (densite == "faible") {
+      tournerMoteur(30);
+      setTargetColor(0, 0, 100); // Bleu foncé (faible)
+    }
+
+    Serial.println("💡 Transition vers la nouvelle couleur...");
+    smoothTransition(50, 20); // 50 étapes, 20ms chacune
+  }
+
+  delay(5000); // 5 sec = 1 heure simulée
+  indexHeure++;
+  if (indexHeure >= totalHeures) indexHeure = 0;
+}
+
+// ------------------ FONCTIONS ------------------
+void tournerMoteur(int degres) {
+  int steps = map(degres, 0, 360, 0, stepsPerRevolution);
+  Serial.print("↻ Rotation moteur de ");
+  Serial.print(degres);
+  Serial.println("°");
+  myStepper.step(steps);
+  delay(300);
+}
+
+void setTargetColor(int r, int g, int b) {
+  targetR = r;
+  targetG = g;
+  targetB = b;
+}
+
+// Transition douce entre current et target
+void smoothTransition(int steps, int delayTime) {
+  float stepR = (targetR - currentR) / float(steps);
+  float stepG = (targetG - currentG) / float(steps);
+  float stepB = (targetB - currentB) / float(steps);
+
+  for (int s = 0; s <= steps; s++) {
+    int newR = currentR + stepR * s;
+    int newG = currentG + stepG * s;
+    int newB = currentB + stepB * s;
+
+    for (int i = 0; i < NUMPIXELS; i++) {
+      pixels.setPixelColor(i, pixels.Color(newR, newG, newB));
+    }
+    pixels.show();
+    delay(delayTime);
+  }
+
+  currentR = targetR;
+  currentG = targetG;
+  currentB = targetB;
+}
