@@ -59,16 +59,13 @@ Le passage d’un état à l’autre peut être déclenché :
 
 ```text
 main.ino
-│
-├── setup()        # Initialisation LEDs + moteur
-├── loop()         # Boucle principale
-│   ├── lireEtat() # récupère le niveau d'activité (API ou variable)
-│   ├── majLEDs()  # adapte la couleur selon l’état
-│   └── majMoteur()# déplace le socle selon l’état
-│
-└── fonctions utilitaires :
-    ├── goToLevel(level)  # 0, 1, 2 → positions moteur
-    └── setColor(level)   # renvoie une couleur RGB selon l’état
+├── [CONFIG] constantes moteur + LEDs
+├── [DOMAIN] types (enum Densite, Color, TramPoint)
+├── [DATA]   scénario de simulation tram
+├── [STATE]  variables d'état (couleurs, index, timer)
+├── [API HW] moteurs/LEDs (tournerMoteur, setTargetColor, smoothTransition, showColor)
+├── [LOGIC]  mapping densité → angle/couleur + traitement changement
+├── [APP]    setup(), loop() non-bloquante (tick simulation)
 ```
 ---
 
