@@ -1,4 +1,3 @@
-# Fete_de_la_science_2025
 # 🌆 POGL — Sculpture Dynamique : Mécanique et Lumière
 
 ## 🧠 Concept
@@ -70,3 +69,11 @@ main.ino
 └── fonctions utilitaires :
     ├── goToLevel(level)  # 0, 1, 2 → positions moteur
     └── setColor(level)   # renvoie une couleur RGB selon l’état
+```
+---
+
+## 📚 Bibliographie
+- https://github.com/benjaminbourlet/Fete_de_la_science_2025.git
+- https://boxes.hackerspace-bamberg.de/
+- https://docs.arduino.cc/
+- https://www.pinterest.com/
